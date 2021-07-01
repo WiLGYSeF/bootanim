@@ -93,8 +93,6 @@ class BootAnimation:
                 break
 
             for _ in range(part.next_delay):
-                if load_time > 0 and time_taken >= load_time:
-                    break
                 frames.append(partframes[part.name][-1])
                 time_taken += spf
 
