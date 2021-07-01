@@ -68,6 +68,11 @@ class BootAnimationTest(unittest.TestCase):
 
             try:
                 anim.save_gif(tmpfname, **entry[ARGS])
+
+                import base64
+                with open(tmpfname, 'rb') as f:
+                    print(base64.b64encode(f.read()).decode('ascii'))
+
                 self.assertEqual(sha256(tmpfname), entry[RESULT])
             finally:
                 try:
