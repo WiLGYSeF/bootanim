@@ -28,6 +28,7 @@ class BootAnimation:
         if os.path.isdir(path):
             self.load_dir(path)
         elif os.path.isfile(path):
+            # TODO: read from zip file
             pass
         else:
             raise ValueError()
@@ -84,7 +85,7 @@ class BootAnimation:
                 })
                 self.parts.append(part)
 
-    def save_gif(self, fname, loop_limit=3, load_time=0):
+    def save_gif(self, fname, loop_limit=3, load_time=0, loop_forever=False):
         # TODO: specify screen size
 
         if loop_limit < 1:
@@ -136,5 +137,5 @@ class BootAnimation:
             append_images=frames[1:],
             save_all=True,
             duration=1000 / self.framerate,
-            loop=1
+            loop=0 if loop_forever else 1
         )

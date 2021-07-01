@@ -68,7 +68,7 @@ class BootAnimationTest(unittest.TestCase):
             finally:
                 try:
                     os.remove(tmpfname)
-                except:
+                except: #pragma: no cover
                     pass
 
 # https://stackoverflow.com/a/3431838
