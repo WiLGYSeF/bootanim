@@ -6,8 +6,6 @@ from PIL import Image
 
 from bootanim_base import (
     PART_TYPE_COMPLETE,
-    PART_TYPE_FADE,
-    PART_TYPE_PARTIAL,
     BootAnimationError
 )
 
@@ -51,7 +49,7 @@ class BootAnimation:
                 raise BootAnimationError('invalid first line of %s' % DESC_FNAME)
 
             width, height, fps = match.groups()
-            self.dimensions = (width, height)
+            self.dimensions = (int(width), int(height))
             self.framerate = int(fps)
 
             part_regex = re.compile(
