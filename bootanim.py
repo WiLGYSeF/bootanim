@@ -58,12 +58,14 @@ class BootAnimation:
                 })
                 self.parts.append(part)
 
-    def save_gif(self, fname, loop_limit=3):
+    def save_gif(self, fname, loop_limit=3, load_time=0):
         if loop_limit < 1:
             raise ValueError()
 
         partframes = {}
         frames = []
+        time_taken = 0
+        spf = 1 / self.framerate
 
         for part in self.parts:
             if part.name not in partframes:
@@ -77,9 +79,27 @@ class BootAnimation:
                 loopcount = loop_limit
 
             for _ in range(loopcount):
-                frames.extend(partframes[part.name])
+                for frame in partframes[part.name]:
+                    frames.append(frame)
+                    time_taken += spf
+
+                    if all((
+                        part.part_type != PART_TYPE_COMPLETE,
+                        load_time > 0 and time_taken >= load_time
+                    )):
+                        break
+
+            if load_time > 0 and time_taken >= load_time:
+                break
+
             for _ in range(part.next_delay):
+                if load_time > 0 and time_taken >= load_time:
+                    break
                 frames.append(partframes[part.name][-1])
+                time_taken += spf
+
+            if load_time > 0 and time_taken >= load_time:
+                break
 
         frames[0].save(
             fname,
