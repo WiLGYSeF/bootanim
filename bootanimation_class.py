@@ -25,13 +25,10 @@ class BootAnimation:
             self.load(path)
 
     def load(self, path):
-        if os.path.isdir(path):
-            self.load_dir(path)
-        elif os.path.isfile(path):
-            # TODO: read from zip file
-            pass
-        else:
-            raise ValueError()
+        if not os.path.isdir(path):
+            raise ValueError('path must be directory')
+
+        self.load_dir(path)
 
         has_infinite_loop = False
         for part in self.parts:
@@ -114,7 +111,7 @@ class BootAnimation:
             # TODO: handle bg_color
             if part.name not in partframes:
                 partframes[part.name] = []
-                for imgfname in os.listdir(part.path):
+                for imgfname in sorted(os.listdir(part.path)):
                     imgpath = os.path.join(part.path, imgfname)
                     partframes[part.name].append(Image.open(imgpath))
 

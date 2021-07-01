@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
 import argparse
+import os
 import sys
+import tempfile
+import zipfile
 
 from bootanimation_class import BootAnimation
 
@@ -35,7 +38,19 @@ def main(args):
 
     argspace = parser.parse_args(args)
 
-    anim = BootAnimation(argspace.files[0])
+    in_path = argspace.files[0]
+    tmpdname = None
+
+    if os.path.isfile(in_path):
+        tmpdname = tempfile.TemporaryDirectory()
+        try:
+            with zipfile.ZipFile(in_path, 'r') as zipf:
+                zipf.extractall(tmpdname.name)
+            in_path = tmpdname.name
+        except:
+            raise
+
+    anim = BootAnimation(in_path)
     anim.save_gif(
         argspace.files[1],
         loop_limit=argspace.loop_limit,
@@ -43,6 +58,9 @@ def main(args):
         loop_forever=argspace.loop_forever,
         verbose=argspace.verbose
     )
+
+    if tmpdname is not None:
+        tmpdname.cleanup()
 
 if __name__ == '__main__':
     main(sys.argv[1:])
