@@ -3,6 +3,9 @@
 import os
 import re
 
+from PIL import Image
+
+DESCRIPTION_FNAME = 'desc.txt'
 
 class BootAnimation:
     def __init__(self, path):
@@ -16,12 +19,16 @@ class BootAnimation:
 
     def load(self, path):
         if os.path.isdir(path):
-            return self.load_dir(path)
-        if not os.path.isfile(path):
+            self.load_dir(path)
+        elif os.path.isfile(path):
+            pass
+        else:
             raise ValueError()
 
+        # TODO: check multiple infinite loops
+
     def load_dir(self, path):
-        with open(os.path.join(path, 'desc.txt'), 'r') as descfile:
+        with open(os.path.join(path, DESCRIPTION_FNAME), 'r') as descfile:
             lines = descfile.readlines()
             match = re.fullmatch(r'(\d+) (\d+) (\d+)\r?\n', lines[0])
             if match is None:
@@ -29,7 +36,10 @@ class BootAnimation:
 
             width, height, fps = match.groups()
             self.dimensions = (width, height)
-            self.framerate = fps
+            try:
+                self.framerate = int(fps)
+            except ValueError:
+                raise ValueError()
 
             # https://blog.justinbull.ca/making-a-custom-android-boot-animation/
             part_regex = re.compile(r'([cp]) (\d+) (\d+) ([^ ]+)(?: ([0-9A-Fa-f]{6}))?')
@@ -49,7 +59,42 @@ class BootAnimation:
                     'bg_color': bg_color,
                     'path': os.path.join(path, name)
                 })
-                print(part)
+                self.parts.append(part)
+
+    def save_gif(self, fname, loop_limit=3):
+        if loop_limit < 1:
+            raise ValueError()
+
+        partframes = {}
+        frames = []
+
+        for part in self.parts:
+            if part.name not in partframes:
+                partframes[part.name] = []
+                for imgfname in os.listdir(part.path):
+                    imgpath = os.path.join(part.path, imgfname)
+                    partframes[part.name].append(Image.open(imgpath))
+
+            loopcount = part.loop
+            if loopcount == 0:
+                loopcount = loop_limit
+
+            for _ in range(loopcount):
+                frames.extend(partframes[part.name])
+            for _ in range(part.next_delay):
+                frames.append(partframes[part.name][-1])
+
+        frames[0].save(
+            fname,
+            format='GIF',
+            append_images=frames[1:],
+            save_all=True,
+            duration=1000 / self.framerate,
+            loop=1
+        )
+
+PART_TYPE_COMPLETE = 'c'
+PART_TYPE_PARTIAL = 'p'
 
 class AnimationPart:
     def __init__(self, **kwargs):
@@ -57,7 +102,9 @@ class AnimationPart:
         self.loop = kwargs['loop']
         self.next_delay = kwargs['next_delay']
         self.name = kwargs['name']
-        self.bg_color = kwargs.get('bg_color', '000000')
+        self.bg_color = kwargs.get('bg_color')
+        if self.bg_color is None:
+            self.bg_color = '000000'
 
         self.path = kwargs.get('path')
 
@@ -101,3 +148,4 @@ class AnimationPart:
 #input_path = '../Amatsuka Uto Wink/bootanimation.zip'
 input_path = '../Amatsuka Uto Wink/'
 anim = BootAnimation(input_path)
+anim.save_gif('test.gif')
