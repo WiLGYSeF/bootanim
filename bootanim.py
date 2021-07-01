@@ -40,7 +40,8 @@ def main(args):
         argspace.files[1],
         loop_limit=argspace.loop_limit,
         load_time=argspace.load_time,
-        loop_forever=argspace.loop_forever
+        loop_forever=argspace.loop_forever,
+        verbose=argspace.verbose
     )
 
 if __name__ == '__main__':

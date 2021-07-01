@@ -85,8 +85,16 @@ class BootAnimation:
                 })
                 self.parts.append(part)
 
-    def save_gif(self, fname, loop_limit=3, load_time=0, loop_forever=False):
+    def save_gif(self, fname, **kwargs):
+        loop_limit = kwargs.get('loop_limit', 3)
+        load_time = kwargs.get('load_time', 0)
+        loop_forever = kwargs.get('loop_forever', False)
+        verbose = kwargs.get('verbose', 0)
+
         # TODO: specify screen size
+
+        if verbose > 0:
+            print('creating %s ...' % fname)
 
         if loop_limit < 1:
             raise ValueError('loop_limit must be at least 1')
@@ -100,6 +108,9 @@ class BootAnimation:
             return load_time > 0 and time_taken >= load_time
 
         for part in self.parts:
+            if verbose > 0:
+                print('  loading %s ...' % part.name)
+
             # TODO: handle bg_color
             if part.name not in partframes:
                 partframes[part.name] = []
@@ -130,6 +141,9 @@ class BootAnimation:
                 time_taken += spf
             if is_done():
                 break
+
+        if verbose > 0:
+            print('  writing gif...')
 
         frames[0].save(
             fname,
