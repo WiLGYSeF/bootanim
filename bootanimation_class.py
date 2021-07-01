@@ -36,7 +36,10 @@ class BootAnimation:
         for part in self.parts:
             if part.loop == 0:
                 if has_infinite_loop:
-                    print('warn: boot animation has multiple infinite loops, but only the first will loop', file=sys.stderr)
+                    print(
+                        'warn: boot animation has multiple infinite loops, but only the first will loop',
+                        file=sys.stderr
+                    )
                     break
                 has_infinite_loop = True
 
@@ -115,6 +118,9 @@ class BootAnimation:
                     if part.part_type != PART_TYPE_COMPLETE and is_done():
                         # TODO: handle PART_TYPE_FADE
                         break
+                # TODO: is this supposed to be here?
+                if is_done():
+                    break
             if is_done():
                 break
 
