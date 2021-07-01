@@ -5,7 +5,7 @@ import re
 
 from PIL import Image
 
-DESCRIPTION_FNAME = 'desc.txt'
+DESC_FNAME = 'desc.txt'
 
 class BootAnimation:
     def __init__(self, path):
@@ -27,28 +27,25 @@ class BootAnimation:
 
         # TODO: check multiple infinite loops
 
+    # https://github.com/aosp-mirror/platform_frameworks_base/blob/master/cmds/bootanimation/FORMAT.md
     def load_dir(self, path):
-        with open(os.path.join(path, DESCRIPTION_FNAME), 'r') as descfile:
+        with open(os.path.join(path, DESC_FNAME), 'r') as descfile:
             lines = descfile.readlines()
             match = re.fullmatch(r'(\d+) (\d+) (\d+)\r?\n', lines[0])
             if match is None:
-                raise ValueError()
+                raise BootAnimationError('invalid first line of %s' % DESC_FNAME)
 
             width, height, fps = match.groups()
             self.dimensions = (width, height)
-            try:
-                self.framerate = int(fps)
-            except ValueError:
-                raise ValueError()
+            self.framerate = int(fps)
 
-            # https://blog.justinbull.ca/making-a-custom-android-boot-animation/
             part_regex = re.compile(r'([cp]) (\d+) (\d+) ([^ ]+)(?: ([0-9A-Fa-f]{6}))?')
 
             for i in range(1, len(lines)):
                 line = lines[i].rstrip()
                 match = part_regex.fullmatch(line)
                 if match is None:
-                    raise ValueError()
+                    raise BootAnimationError('invalid %s line: %s' % (DESC_FNAME, line))
 
                 ptype, loop, next_delay, name, bg_color = match.groups()
                 part = AnimationPart(**{
@@ -109,16 +106,16 @@ class AnimationPart:
         self.path = kwargs.get('path')
 
         if self.part_type not in (PART_TYPE_COMPLETE, PART_TYPE_PARTIAL):
-            raise ValueError()
+            raise BootAnimationError('invalid animation part type')
         if self.loop < 0:
-            raise ValueError()
+            raise BootAnimationError('invalid loop number')
         if self.next_delay < 0:
-            raise ValueError()
+            raise BootAnimationError('invalid delay value')
 
         hexchars = set('0123456789ABCDEFabcdef')
         for char in self.bg_color:
             if char not in hexchars:
-                raise ValueError()
+                raise BootAnimationError('invalid background color')
 
     @staticmethod
     def from_tuple(tup):
@@ -144,6 +141,9 @@ class AnimationPart:
             self.next_delay,
             self.name
         )
+
+class BootAnimationError(Exception):
+    pass
 
 #input_path = '../Amatsuka Uto Wink/bootanimation.zip'
 input_path = '../Amatsuka Uto Wink/'
