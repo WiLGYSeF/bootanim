@@ -24,6 +24,8 @@ class AnimationPart:
         if self.next_delay < 0:
             raise BootAnimationError('invalid delay value')
 
+        if len(self.bg_color) != 6:
+            raise BootAnimationError('invalid background color')
         hexchars = set('0123456789ABCDEFabcdef')
         for char in self.bg_color:
             if char not in hexchars:
@@ -47,9 +49,13 @@ class AnimationPart:
         })
 
     def __str__(self):
-        return '%s %d %d %s' % (
+        result = '%s %d %d %s' % (
             self.part_type,
             self.loop,
             self.next_delay,
             self.name
         )
+
+        if self.bg_color != '000000':
+            result += ' ' + self.bg_color
+        return result
