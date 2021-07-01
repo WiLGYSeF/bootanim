@@ -23,6 +23,8 @@ class AnimationPart:
             raise BootAnimationError('invalid loop number')
         if self.next_delay < 0:
             raise BootAnimationError('invalid delay value')
+        if len(self.name) == 0:
+            raise BootAnimationError('invalid name')
 
         if len(self.bg_color) != 6:
             raise BootAnimationError('invalid background color')
