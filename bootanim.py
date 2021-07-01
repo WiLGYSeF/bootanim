@@ -41,14 +41,11 @@ def main(args):
     in_path = argspace.files[0]
     tmpdname = None
 
-    if os.path.isfile(in_path):
+    if not os.path.isdir(in_path):
         tmpdname = tempfile.TemporaryDirectory()
-        try:
-            with zipfile.ZipFile(in_path, 'r') as zipf:
-                zipf.extractall(tmpdname.name)
-            in_path = tmpdname.name
-        except:
-            raise
+        with zipfile.ZipFile(in_path, 'r') as zipf:
+            zipf.extractall(tmpdname.name)
+        in_path = tmpdname.name
 
     anim = BootAnimation(in_path)
     anim.save_gif(

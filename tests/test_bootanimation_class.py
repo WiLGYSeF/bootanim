@@ -1,14 +1,13 @@
-import hashlib
 import os
 import random
 import unittest
 
 from bootanim_base import BootAnimationError
 from bootanimation_class import BootAnimation
+from tests.helpers import sha256
 
 
 ANIMATIONS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'animations')
-GIFS_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'gifs')
 
 LOAD = {
     os.path.join(ANIMATIONS_DIR, 'amatsuka-uto-wink'): {
@@ -78,11 +77,3 @@ class BootAnimationTest(unittest.TestCase):
                     os.remove(tmpfname)
                 except: #pragma: no cover
                     pass
-
-# https://stackoverflow.com/a/3431838
-def sha256(fname):
-    ohash = hashlib.sha256()
-    with open(fname, 'rb') as file:
-        for chunk in iter(lambda: file.read(4096), b''):
-            ohash.update(chunk)
-    return ohash.hexdigest()
