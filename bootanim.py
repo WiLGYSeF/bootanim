@@ -39,7 +39,15 @@ class BootAnimation:
             self.dimensions = (width, height)
             self.framerate = int(fps)
 
-            part_regex = re.compile(r'([cp]) (\d+) (\d+) ([^ ]+)(?: ([0-9A-Fa-f]{6}))?')
+            part_regex = re.compile(
+                r'(?P<type>[cfp])'
+                r' (?P<loop>\d+)'
+                r' (?P<delay>\d+)'
+                r' (?P<name>[^ ]+)'
+                r'(?: (?P<fade>\d+))?'
+                r'(?: #?(?P<bg>[0-9A-Fa-f]{6}))?'
+                r'(?: (?P<clk1>(c|-?\d+))(?: (?P<clk2>(c|-?\d+)))?)?'
+            )
 
             for i in range(1, len(lines)):
                 line = lines[i].rstrip()
@@ -47,20 +55,20 @@ class BootAnimation:
                 if match is None:
                     raise BootAnimationError('invalid %s line: %s' % (DESC_FNAME, line))
 
-                ptype, loop, next_delay, name, bg_color = match.groups()
+                groups = match.groupdict()
                 part = AnimationPart(**{
-                    'part_type': ptype,
-                    'loop': int(loop),
-                    'next_delay': int(next_delay),
-                    'name': name,
-                    'bg_color': bg_color,
-                    'path': os.path.join(path, name)
+                    'part_type': groups['type'],
+                    'loop': int(groups['loop']),
+                    'next_delay': int(groups['delay']),
+                    'name': groups['name'],
+                    'bg_color': groups['bg'],
+                    'path': os.path.join(path, groups['name'])
                 })
                 self.parts.append(part)
 
     def save_gif(self, fname, loop_limit=3, load_time=0):
         if loop_limit < 1:
-            raise ValueError()
+            raise ValueError('loop_limit must be at least 1')
 
         partframes = {}
         frames = []
@@ -87,6 +95,7 @@ class BootAnimation:
                         part.part_type != PART_TYPE_COMPLETE,
                         load_time > 0 and time_taken >= load_time
                     )):
+                        # TODO: handle PART_TYPE_FADE
                         break
 
             if load_time > 0 and time_taken >= load_time:
@@ -110,6 +119,7 @@ class BootAnimation:
 
 PART_TYPE_COMPLETE = 'c'
 PART_TYPE_PARTIAL = 'p'
+PART_TYPE_FADE = 'f'
 
 class AnimationPart:
     def __init__(self, **kwargs):
@@ -123,7 +133,7 @@ class AnimationPart:
 
         self.path = kwargs.get('path')
 
-        if self.part_type not in (PART_TYPE_COMPLETE, PART_TYPE_PARTIAL):
+        if self.part_type not in (PART_TYPE_COMPLETE, PART_TYPE_PARTIAL, PART_TYPE_FADE):
             raise BootAnimationError('invalid animation part type')
         if self.loop < 0:
             raise BootAnimationError('invalid loop number')
